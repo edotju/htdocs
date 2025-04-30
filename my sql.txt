@@ -1,0 +1,82 @@
+-- Estructura de la base de datos
+CREATE DATABASE IF NOT EXISTS sistema_inventario;
+USE sistema_inventario;
+drop database sistema_inventario;
+-- Tabla de usuarios para autenticación
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    usuario VARCHAR(50) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    correo VARCHAR(50) NOT NULL UNIQUE,
+    id_rol INT,
+    FOREIGN KEY (id_rol) REFERENCES Roles(id),
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+select * from usuarios;
+INSERT INTO usuarios (nombre, usuario, password, correo, id_rol) VALUES (
+    'Administrador', 
+    'admin', 
+    '1234', -- Hash de "admin123"
+    'admin@admin.com',
+    1
+);
+------------------------------------------------------------------------------------------------------------------
+CREATE TABLE Permisos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL
+);
+
+
+CREATE TABLE Roles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL
+);
+INSERT INTO Roles (nombre) VALUES ('Master_Admin'), ('admin'), ('user');
+
+
+-- Tabla de categorías de productos
+CREATE TABLE categorias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT
+);
+
+-- Tabla de productos principal
+CREATE TABLE productos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(50) NOT NULL UNIQUE,
+    nombre VARCHAR(150) NOT NULL,
+    descripcion TEXT,
+    categoria_id INT,
+    precio_costo DECIMAL(10,2) NOT NULL,
+    precio_venta DECIMAL(10,2) NOT NULL,
+    stock INT NOT NULL DEFAULT 0,
+    stock_minimo INT DEFAULT 5,
+    imagen VARCHAR(255),
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE SET NULL
+);
+
+-- Tabla de movimientos de inventario
+CREATE TABLE movimientos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    producto_id INT NOT NULL,
+    tipo ENUM('entrada', 'salida') NOT NULL,
+    cantidad INT NOT NULL,
+    motivo VARCHAR(255),
+    usuario_id INT,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
+);
+
+-- Insertar un usuario administrador por defecto (contraseña: admin123)
+INSERT INTO usuarios (nombre, usuario, password, rol)
+VALUES ('Administrador', 'admin', '1234', 'Master_Admin');
+
+-- Insertar algunas categorías de ejemplo
+INSERT INTO categorias (nombre, descripcion) VALUES 
+('Electrónicos', 'Productos electrónicos y tecnológicos'),
+('Oficina', 'Artículos de oficina'),
+('Hogar', 'Productos para el hogar');
